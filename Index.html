@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Patente Online</title>
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      user-select: none; /* Prevent text selection */
+    }
+    #webview {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      border: none;
+    }
+    #enterFullscreenBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <button id="enterFullscreenBtn">Entra in modalità schermo intero</button>
+  <iframe id="webview" src="https://www.quizpatenteonline.it/quiz-patente-b" frameborder="0" allowfullscreen></iframe>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const webview = document.getElementById("webview");
+      const enterFullscreenBtn = document.getElementById("enterFullscreenBtn");
+
+      function enterFullscreen() {
+        if (webview.requestFullscreen) {
+          webview.requestFullscreen();
+        } else if (webview.mozRequestFullScreen) { // Firefox
+          webview.mozRequestFullScreen();
+        } else if (webview.webkitRequestFullscreen) { // Chrome, Safari and Opera
+          webview.webkitRequestFullscreen();
+        } else if (webview.msRequestFullscreen) { // IE/Edge
+          webview.msRequestFullscreen();
+        }
+        webview.style.display = 'block';
+        enterFullscreenBtn.style.display = 'none';
+      }
+
+      function checkFullscreen() {
+        if (!document.fullscreenElement && 
+            !document.webkitFullscreenElement && 
+            !document.mozFullScreenElement && 
+            !document.msFullscreenElement) {
+          location.replace(location.href);
+        }
+      }
+
+      function preventDefaultActions(event) {
+        event.preventDefault();
+      }
+
+      function addListenersToIframe() {
+        const iframeDoc = webview.contentDocument || webview.contentWindow.document;
+
+        iframeDoc.addEventListener('contextmenu', preventDefaultActions);
+        iframeDoc.addEventListener('selectstart', preventDefaultActions);
+        iframeDoc.addEventListener('mousedown', function(event) {
+          if (event.detail > 1) { // To avoid blocking single clicks
+            preventDefaultActions(event);
+          }
+        });
+      }
+
+      document.addEventListener("fullscreenchange", checkFullscreen);
+      document.addEventListener("webkitfullscreenchange", checkFullscreen);
+      document.addEventListener("mozfullscreenchange", checkFullscreen);
+      document.addEventListener("msfullscreenchange", checkFullscreen);
+
+      enterFullscreenBtn.addEventListener('click', enterFullscreen);
+
+      // Prevent right-click context menu
+      document.addEventListener('contextmenu', preventDefaultActions);
+
+      // Prevent text selection
+      document.addEventListener('selectstart', preventDefaultActions);
+
+      // Prevent text selection via mouse drag
+      document.addEventListener('mousedown', function(event) {
+        if (event.detail > 1) { // To avoid blocking single clicks
+          preventDefaultActions(event);
+        }
+      });
+
+      // Add event listeners to the iframe once it's loaded
+      webview.addEventListener('load', addListenersToIframe);
+
+    });
+
+    // Detect when the user switches tabs or closes the browser
+    window.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "hidden") {
+        const webview = document.getElementById("webview");
+        webview.stop();
+      }
+    });
+
+    // Remove the beforeunload event listener to avoid the warning message
+    window.removeEventListener("beforeunload", function(event) {
+      event.preventDefault();
+      return "";
+    });
+  </script>
+</body>
+</html>
